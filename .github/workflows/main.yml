@@ -1,0 +1,67 @@
+const express = require('express');
+const bodyParser = require('body-parser');
+const nodemailer = require('nodemailer'); // Untuk form kontak
+const app = express();
+const port = 3000;
+
+// Middleware
+app.use(express.static('public'));
+app.use(bodyParser.urlencoded({ extended: true }));
+app.set('view engine', 'ejs');
+
+// Data dummy untuk properti (bisa diganti dengan database nanti)
+const properties = [
+  { id: 1, name: 'Villa Mewah Jakarta', price: 'Rp 5 Miliar', image: '/images/villa1.jpg', desc: 'Villa 3 kamar dengan kolam renang pribadi.' },
+  { id: 2, name: 'Apartemen Elite Surabaya', price: 'Rp 2 Miliar', image: '/images/apart1.jpg', desc: 'Apartemen 2 kamar dengan view kota.' },
+  // Tambah lebih banyak
+];
+
+// Routes
+app.get('/', (req, res) => {
+  res.render('index', { title: 'Selamat Datang di Luxury Housing' });
+});
+
+app.get('/about', (req, res) => {
+  res.render('about', { title: 'Tentang Kami' });
+});
+
+app.get('/properties', (req, res) => {
+  res.render('properties', { title: 'Daftar Properti', properties });
+});
+
+app.get('/property/:id', (req, res) => {
+  const property = properties.find(p => p.id == req.params.id);
+  res.render('property-detail', { title: property.name, property });
+});
+
+app.get('/gallery', (req, res) => {
+  res.render('gallery', { title: 'Galeri Properti' });
+});
+
+app.get('/contact', (req, res) => {
+  res.render('contact', { title: 'Hubungi Kami' });
+});
+
+// Form kontak (kirim email)
+app.post('/contact', (req, res) => {
+  const { name, email, message } = req.body;
+  // Setup nodemailer (ganti dengan email Anda)
+  const transporter = nodemailer.createTransporter({
+    service: 'gmail',
+    auth: { user: 'your-email@gmail.com', pass: 'your-password' }
+  });
+  const mailOptions = {
+    from: email,
+    to: 'admin@luxuryhousing.com',
+    subject: 'Pesan dari Website',
+    text: `Nama: ${name}\nEmail: ${email}\nPesan: ${message}`
+  };
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) console.log(error);
+    res.redirect('/contact');
+  });
+});
+
+app.listen(port, () => {
+  console.log(`Server running at http://localhost:${port}`);
+});
